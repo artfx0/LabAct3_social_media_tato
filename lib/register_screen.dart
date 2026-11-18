@@ -10,38 +10,23 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
+  final formKey = GlobalKey<FormState>();
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmController = TextEditingController();
 
-  void showMessage(String message) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
-  }
-
   void register() {
-    final username = usernameController.text.trim();
-    final password = passwordController.text;
-    final confirm = confirmController.text;
-
-    if (username.length < 3) {
-      showMessage('Username must contain at least 3 characters.');
-      return;
-    }
-    if (username.toLowerCase() == 'admin') {
-      showMessage('The username admin is reserved.');
-      return;
-    }
-    if (password.length < 6) {
-      showMessage('Password must contain at least 6 characters.');
-      return;
-    }
-    if (password != confirm) {
-      showMessage('Passwords do not match.');
+    if (!formKey.currentState!.validate()) {
       return;
     }
 
     DemoAuth.register(usernameController.text.trim(), passwordController.text);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Registration successful! You can now log in.'),
+      ),
+    );
 
     Navigator.of(context).pop();
   }
@@ -60,40 +45,68 @@ class _RegisterScreenState extends State<RegisterScreen> {
       appBar: AppBar(title: const Text('Register')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            TextField(
-              controller: usernameController,
-              decoration: const InputDecoration(
-                labelText: 'Username',
-                prefixIcon: Icon(Icons.person),
-                border: OutlineInputBorder(),
+        child: Form(
+          key: formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TextFormField(
+                controller: usernameController,
+                decoration: const InputDecoration(
+                  labelText: 'Username',
+                  prefixIcon: Icon(Icons.person),
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  final v = value?.trim() ?? '';
+                  if (v.length < 3) {
+                    return 'Username must be at least 3 characters.';
+                  }
+                  if (v.toLowerCase() == 'admin') {
+                    return 'The username admin is reserved.';
+                  }
+                  return null;
+                },
               ),
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: passwordController,
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'Password',
-                prefixIcon: Icon(Icons.lock),
-                border: OutlineInputBorder(),
+              const SizedBox(height: 20),
+              TextFormField(
+                controller: passwordController,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: 'Password',
+                  prefixIcon: Icon(Icons.lock),
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value == null || value.length < 6) {
+                    return 'Password must be at least 6 characters.';
+                  }
+                  return null;
+                },
               ),
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: confirmController,
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'Confirm Password',
-                prefixIcon: Icon(Icons.lock_outline),
-                border: OutlineInputBorder(),
+              const SizedBox(height: 20),
+              TextFormField(
+                controller: confirmController,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: 'Confirm Password',
+                  prefixIcon: Icon(Icons.lock_outline),
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value != passwordController.text) {
+                    return 'Passwords do not match.';
+                  }
+                  return null;
+                },
               ),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(onPressed: register, child: const Text('Register')),
-          ],
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: register,
+                child: const Text('Register'),
+              ),
+            ],
+          ),
         ),
       ),
     );
