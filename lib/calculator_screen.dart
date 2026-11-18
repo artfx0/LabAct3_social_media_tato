@@ -14,11 +14,19 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   String result = '';
 
   void calculate(String op) {
-    final a = double.tryParse(aController.text.trim());
-    final b = double.tryParse(bController.text.trim());
+    final aText = aController.text.trim();
+    final bText = bController.text.trim();
+
+    if (aText.isEmpty || bText.isEmpty) {
+      setState(() => result = 'Enter both numbers.');
+      return;
+    }
+
+    final a = double.tryParse(aText);
+    final b = double.tryParse(bText);
 
     if (a == null || b == null) {
-      setState(() => result = 'Enter two valid numbers.');
+      setState(() => result = 'Enter valid numbers.');
       return;
     }
 
@@ -41,7 +49,13 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         value = a / b;
     }
 
-    setState(() => result = 'Result: $value');
+    setState(() => result = value.toString());
+  }
+
+  void clear() {
+    aController.clear();
+    bController.clear();
+    setState(() => result = '');
   }
 
   @override
@@ -62,7 +76,10 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
           children: [
             TextField(
               controller: aController,
-              keyboardType: TextInputType.number,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+                signed: true,
+              ),
               decoration: const InputDecoration(
                 labelText: 'First number',
                 border: OutlineInputBorder(),
@@ -71,7 +88,10 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
             const SizedBox(height: 16),
             TextField(
               controller: bController,
-              keyboardType: TextInputType.number,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+                signed: true,
+              ),
               decoration: const InputDecoration(
                 labelText: 'Second number',
                 border: OutlineInputBorder(),
@@ -88,11 +108,13 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                   ),
               ],
             ),
+            const SizedBox(height: 16),
+            OutlinedButton(onPressed: clear, child: const Text('Clear')),
             const SizedBox(height: 24),
             Text(
               result,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 20),
+              style: const TextStyle(fontSize: 24),
             ),
           ],
         ),
